@@ -92,7 +92,7 @@ class App extends Component {
       <AppContext.Provider
         value={{
           user: this.state.user,
-          logout: this.state.logOut,
+          logout: this.logOut,  // Corrected to use this.logOut instead of this.state.logOut
         }}
       >
         <React.Fragment>
@@ -101,9 +101,9 @@ class App extends Component {
               <Notifications
                 markNotificationAsRead={this.markNotificationAsRead}
                 listNotifications={this.state.listNotifications}
-                displayDrawer={displayDrawer} // Use props instead of state
-                handleDisplayDrawer={displayNotificationDrawer} // Use prop function
-                handleHideDrawer={hideNotificationDrawer} // Use prop function
+                displayDrawer={displayDrawer}
+                handleDisplayDrawer={displayNotificationDrawer}
+                handleHideDrawer={hideNotificationDrawer}
               />
               <Header />
             </div>
@@ -141,14 +141,15 @@ const styles = StyleSheet.create({
 
 App.defaultProps = {
   isLoggedIn: false,
-  logOut: () => {
-    return;
-  },
+  logOut: () => {},
 };
 
 App.propTypes = {
   isLoggedIn: PropTypes.bool,
   logOut: PropTypes.func,
+  displayDrawer: PropTypes.bool.isRequired,
+  displayNotificationDrawer: PropTypes.func.isRequired,
+  hideNotificationDrawer: PropTypes.func.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
