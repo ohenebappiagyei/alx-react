@@ -25,10 +25,12 @@ describe("mapStateToProps", () => {
   it("should map state to props correctly", () => {
     const state = fromJS({
       isUserLoggedIn: true,
+      isNotificationDrawerVisible: false,
     });
 
     const expectedProps = {
       isLoggedIn: true,
+      displayDrawer: false,
     };
 
     expect(mapStateToProps(state)).toEqual(expectedProps);
@@ -55,7 +57,7 @@ describe("rendering components", () => {
   });
 
   it("contains Login component", () => {
-    const wrapper = shallow(<App />);
+    const wrapper = shallow(<App isLoggedIn={false} />);
 
     expect(wrapper.find(Login)).toHaveLength(1);
   });
@@ -67,25 +69,26 @@ describe("rendering components", () => {
   });
 
   it("checks CourseList is not rendered", () => {
-    const wrapper = shallow(<App />);
+    const wrapper = shallow(<App isLoggedIn={false} />);
 
     expect(wrapper.contains(<CourseList />)).toBe(false);
   });
 });
 
-describe("when isLogged in is true", () => {
-  const wrapper = shallow(<App />);
-  expect(wrapper.state().user).toEqual(user);
-
+describe("when isLoggedIn is true", () => {
   it("checks Login is not rendered", () => {
+    const wrapper = shallow(<App isLoggedIn={true} />);
+
     expect(wrapper.contains(<Login />)).toBe(false);
   });
 
   it("checks CourseList is rendered", () => {
-    expect(wrapper.find(CourseList)).toHaveLength(0);
+    const wrapper = shallow(<App isLoggedIn={true} />);
+
+    expect(wrapper.find(CourseList)).toHaveLength(1);
   });
 
-  it(`Tests that the logIn function updates user's state correctly`, () => {
+  it("tests that the logIn function updates user's state correctly", () => {
     const wrapper = mount(
       <AppContext.Provider value={{ user, logOut }}>
         <App />
@@ -105,7 +108,7 @@ describe("when isLogged in is true", () => {
     wrapper.unmount();
   });
 
-  it(`Tests that the logOut function updates user's state correctly`, () => {
+  it("tests that the logOut function updates user's state correctly", () => {
     const wrapper = mount(
       <AppContext.Provider value={{ user, logOut }}>
         <App />
@@ -118,7 +121,7 @@ describe("when isLogged in is true", () => {
       isLoggedIn: true,
     };
 
-    expect(wrapper.state().user).toEqual(user);
+    expect(wrapper.state().user).toEqual(myUser);
     const instance = wrapper.instance();
     instance.logOut();
     expect(wrapper.state().user).toEqual(user);
@@ -126,30 +129,8 @@ describe("when isLogged in is true", () => {
   });
 });
 
-describe("testing state of App.js", () => {
-  it("displayDrawer initial value should be set to false", () => {
-    const wrapper = mount(<App />);
-
-    expect(wrapper.state().displayDrawer).toBe(false);
-  });
-
-  it("should set displayDrawer to true after calling handleDisplayDrawer", () => {
-    const wrapper = shallow(<App />);
-    wrapper.instance().handleDisplayDrawer();
-
-    expect(wrapper.state().displayDrawer).toBe(true);
-  });
-
-  it("should set displayDrawer to false after calling handleHideDrawer", () => {
-    const wrapper = shallow(<App />);
-    wrapper.instance().handleHideDrawer();
-
-    expect(wrapper.state().displayDrawer).toBe(false);
-  });
-});
-
 describe("markNotificationAsRead works as intended", () => {
-  it(`verify that markNotificationAsRead works as intended, deletes the notification with the passed id from the listNotifications array`, () => {
+  it("verify that markNotificationAsRead works as intended, deletes the notification with the passed id from the listNotifications array", () => {
     const context = {
       user: {
         ...user,
