@@ -1,8 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { shallow, mount } from "enzyme";
 import React from "react";
+import { shallow, mount } from "enzyme";
 import Footer from "./Footer";
 import { getFullYear, getFooterCopy } from "../utils/utils";
 import { AppContext } from "../App/AppContext";
@@ -14,8 +14,7 @@ describe("Footer test", () => {
   });
 
   it('Footer component renders "Copyright ${getFullYear()} - ${getFooterCopy(true)}"', () => {
-    const wrapper = mount(<Footer />);
-
+    const wrapper = shallow(<Footer />);
     expect(wrapper.find("p").text()).toEqual(`Copyright ${getFullYear()} - ${getFooterCopy(false)}`);
   });
 

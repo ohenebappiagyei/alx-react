@@ -2,14 +2,15 @@
  * @jest-environment jsdom
  */
 import React from "react";
+import { shallow, mount } from "enzyme";
 import Header from "./Header";
-import { mount, shallow } from "enzyme";
 import { StyleSheetTestUtils } from "aphrodite";
 import { AppContext } from "../App/AppContext";
 
 beforeEach(() => {
   StyleSheetTestUtils.suppressStyleInjection();
 });
+
 afterEach(() => {
   StyleSheetTestUtils.clearBufferAndResumeStyleInjection();
 });
@@ -19,6 +20,7 @@ describe("Header", () => {
     const wrapper = shallow(<Header />);
     expect(wrapper.exists()).toEqual(true);
   });
+
   it("should render a h1", () => {
     const wrapper = shallow(<Header />);
     expect(wrapper.exists("img")).toEqual(true);
