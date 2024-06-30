@@ -11,7 +11,7 @@ import { StyleSheet, css } from "aphrodite";
 import PropTypes from "prop-types";
 import { getLatestNotification } from "../utils/utils";
 import { AppContext, user } from "./AppContext";
-import { displayNotificationDrawer, hideNotificationDrawer } from '../actions/uiActionCreators';
+import { displayNotificationDrawer, hideNotificationDrawer, loginRequest, boundLogout } from '../actions/uiActionCreators';
 
 export const mapStateToProps = (state) => ({
   isLoggedIn: state.get('isUserLoggedIn'),
@@ -21,6 +21,8 @@ export const mapStateToProps = (state) => ({
 const mapDispatchToProps = {
   displayNotificationDrawer,
   hideNotificationDrawer,
+  loginRequest,
+  boundLogout,
 };
 
 class App extends Component {
@@ -52,7 +54,7 @@ class App extends Component {
     if (e.ctrlKey && e.key === "h") {
       e.preventDefault();
       alert("Logging you out");
-      this.props.logOut();
+      this.props.boundLogout(); // Dispatching boundLogout action
     }
   }
 
@@ -72,12 +74,14 @@ class App extends Component {
         isLoggedIn: true,
       },
     });
+    this.props.loginRequest(email, password); // Dispatching loginRequest action
   }
 
   logOut() {
     this.setState({
       user: user,
     });
+    this.props.boundLogout(); // Dispatching boundLogout action
   }
 
   markNotificationAsRead(id) {
@@ -92,7 +96,7 @@ class App extends Component {
       <AppContext.Provider
         value={{
           user: this.state.user,
-          logout: this.logOut,  // Corrected to use this.logOut instead of this.state.logOut
+          logout: this.state.logOut,
         }}
       >
         <React.Fragment>
@@ -101,9 +105,9 @@ class App extends Component {
               <Notifications
                 markNotificationAsRead={this.markNotificationAsRead}
                 listNotifications={this.state.listNotifications}
-                displayDrawer={displayDrawer}
-                handleDisplayDrawer={displayNotificationDrawer}
-                handleHideDrawer={hideNotificationDrawer}
+                displayDrawer={displayDrawer} // Use props instead of state
+                handleDisplayDrawer={displayNotificationDrawer} // Use prop function
+                handleHideDrawer={hideNotificationDrawer} // Use prop function
               />
               <Header />
             </div>
@@ -141,15 +145,14 @@ const styles = StyleSheet.create({
 
 App.defaultProps = {
   isLoggedIn: false,
-  logOut: () => {},
+  logOut: () => {
+    return;
+  },
 };
 
 App.propTypes = {
   isLoggedIn: PropTypes.bool,
   logOut: PropTypes.func,
-  displayDrawer: PropTypes.bool.isRequired,
-  displayNotificationDrawer: PropTypes.func.isRequired,
-  hideNotificationDrawer: PropTypes.func.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);

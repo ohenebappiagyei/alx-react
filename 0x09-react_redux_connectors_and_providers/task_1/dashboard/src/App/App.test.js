@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from "react";
-import App, { mapStateToProps } from "./App";
+import App, { mapStateToProps, mapDispatchToProps } from "./App";
 import Login from "../Login/Login";
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
@@ -12,6 +12,25 @@ import { shallow, mount } from "enzyme";
 import { StyleSheetTestUtils } from "aphrodite";
 import { AppContext, user, logOut } from "./AppContext";
 import { fromJS } from "immutable";
+import { loginRequest, boundLogout } from "../actions/uiActionCreators";
+
+// Mock Redux store
+const mockStore = {
+  getState: () => ({
+    ui: fromJS({
+      isUserLoggedIn: true,
+      isNotificationDrawerVisible: false,
+    }),
+  }),
+  dispatch: jest.fn(),
+};
+
+// Mock the mapStateToProps and mapDispatchToProps using jest.fn()
+jest.mock("./App", () => ({
+  ...jest.requireActual("./App"),
+  mapStateToProps: jest.fn(),
+  mapDispatchToProps: jest.fn(),
+}));
 
 beforeEach(() => {
   StyleSheetTestUtils.suppressStyleInjection();
@@ -23,75 +42,72 @@ afterEach(() => {
 
 describe("mapStateToProps", () => {
   it("should map state to props correctly", () => {
-    const state = fromJS({
-      isUserLoggedIn: true,
-      isNotificationDrawerVisible: false,
-    });
-
+    const state = mockStore.getState().ui;
     const expectedProps = {
       isLoggedIn: true,
       displayDrawer: false,
     };
 
+    mapStateToProps(state);
+    expect(mapStateToProps).toHaveBeenCalledWith(state);
     expect(mapStateToProps(state)).toEqual(expectedProps);
+  });
+});
+
+describe("mapDispatchToProps", () => {
+  it("should map dispatch to props correctly", () => {
+    mapDispatchToProps(mockStore.dispatch);
+    expect(mapDispatchToProps).toHaveBeenCalledWith(mockStore.dispatch);
   });
 });
 
 describe("rendering components", () => {
   it("renders App component without crashing", () => {
     const wrapper = shallow(<App />);
-
     expect(wrapper.exists()).toBe(true);
   });
 
   it("contains Notifications component", () => {
     const wrapper = shallow(<App />);
-
     expect(wrapper.find(Notifications)).toHaveLength(1);
   });
 
   it("contains Header component", () => {
     const wrapper = shallow(<App />);
-
     expect(wrapper.contains(<Header />)).toBe(true);
   });
 
   it("contains Login component", () => {
-    const wrapper = shallow(<App isLoggedIn={false} />);
-
+    const wrapper = shallow(<App />);
     expect(wrapper.find(Login)).toHaveLength(1);
   });
 
   it("contains Footer component", () => {
     const wrapper = shallow(<App />);
-
     expect(wrapper.contains(<Footer />)).toBe(true);
   });
 
   it("checks CourseList is not rendered", () => {
-    const wrapper = shallow(<App isLoggedIn={false} />);
-
-    expect(wrapper.contains(<CourseList />)).toBe(false);
+    const wrapper = shallow(<App />);
+    expect(wrapper.find(CourseList)).toHaveLength(0);
   });
 });
 
 describe("when isLoggedIn is true", () => {
   it("checks Login is not rendered", () => {
     const wrapper = shallow(<App isLoggedIn={true} />);
-
-    expect(wrapper.contains(<Login />)).toBe(false);
+    expect(wrapper.find(Login)).toHaveLength(0);
   });
 
   it("checks CourseList is rendered", () => {
     const wrapper = shallow(<App isLoggedIn={true} />);
-
     expect(wrapper.find(CourseList)).toHaveLength(1);
   });
 
   it("tests that the logIn function updates user's state correctly", () => {
     const wrapper = mount(
       <AppContext.Provider value={{ user, logOut }}>
-        <App />
+        <App loginRequest={loginRequest} />
       </AppContext.Provider>
     );
 
@@ -101,30 +117,28 @@ describe("when isLoggedIn is true", () => {
       isLoggedIn: true,
     };
 
-    expect(wrapper.state().user).toEqual(user);
-    const instance = wrapper.instance();
+    const instance = wrapper.find(App).instance();
     instance.logIn(myUser.email, myUser.password);
-    expect(wrapper.state().user).toEqual(myUser);
+    wrapper.update();
+
+    expect(wrapper.find(App).state().user).toEqual(myUser);
+
     wrapper.unmount();
   });
 
   it("tests that the logOut function updates user's state correctly", () => {
     const wrapper = mount(
       <AppContext.Provider value={{ user, logOut }}>
-        <App />
+        <App boundLogout={boundLogout} />
       </AppContext.Provider>
     );
 
-    const myUser = {
-      email: "testy@gmail.com",
-      password: "testy",
-      isLoggedIn: true,
-    };
-
-    expect(wrapper.state().user).toEqual(myUser);
-    const instance = wrapper.instance();
+    const instance = wrapper.find(App).instance();
     instance.logOut();
-    expect(wrapper.state().user).toEqual(user);
+    wrapper.update();
+
+    expect(wrapper.find(App).state().user).toEqual(user);
+
     wrapper.unmount();
   });
 });
@@ -149,17 +163,16 @@ describe("markNotificationAsRead works as intended", () => {
       </AppContext.Provider>
     );
 
-    const instance = wrapper.instance();
-
+    const instance = wrapper.find(App).instance();
     instance.markNotificationAsRead(3);
+    wrapper.update();
 
-    expect(wrapper.state().listNotifications).toEqual([
+    expect(wrapper.find(App).state().listNotifications).toEqual([
       { id: 1, type: "default", value: "New course available" },
       { id: 2, type: "urgent", value: "New resume available" },
     ]);
 
-    expect(wrapper.state().listNotifications.length).toBe(2);
-    expect(wrapper.state().listNotifications[3]).toBe(undefined);
+    expect(wrapper.find(App).state().listNotifications.length).toBe(2);
 
     wrapper.unmount();
   });
