@@ -1,11 +1,11 @@
 import { Map } from 'immutable';
-import { 
-  DISPLAY_NOTIFICATION_DRAWER, 
-  HIDE_NOTIFICATION_DRAWER, 
-  LOGIN_SUCCESS, 
-  LOGIN_FAILURE, 
+import {
+  DISPLAY_NOTIFICATION_DRAWER,
+  HIDE_NOTIFICATION_DRAWER,
+  LOGIN_SUCCESS,
+  LOGIN_FAILURE,
   LOGOUT,
-  LOGIN
+  LOGIN,
 } from '../actions/uiActionTypes';
 
 const initialState = Map({
@@ -36,6 +36,6 @@ export function uiReducer(state = initialState, action) {
     default:
       return state;
   }
-};
+}
 
 export default uiReducer;
