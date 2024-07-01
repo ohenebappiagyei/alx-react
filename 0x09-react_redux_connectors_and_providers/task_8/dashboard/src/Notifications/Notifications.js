@@ -5,8 +5,12 @@ import { connect } from "react-redux";
 import NotificationItem from "./NotificationItem";
 import PropTypes from "prop-types";
 import NotificationItemShape from "./NotificationItemShape";
-import { fetchNotifications, markAsRead } from "../actions/notificationActionCreators";
-import { getUnreadNotifications } from "../selectors/notificationSelectors"; // Import the selector
+import {
+  fetchNotifications,
+  markAsRead,
+  setNotificationFilter,
+} from "../actions/notificationActionCreators";
+import { getUnreadNotificationsByType } from "../selectors/notificationSelectors"; // Import the selector
 
 const Notifications = ({
   displayDrawer,
@@ -15,6 +19,7 @@ const Notifications = ({
   handleHideDrawer,
   markAsRead, // Use the action creator directly
   fetchNotifications,
+  setNotificationFilter,
 }) => {
   useEffect(() => {
     // Call fetchNotifications action when component mounts
@@ -24,10 +29,7 @@ const Notifications = ({
   return (
     <React.Fragment>
       {!displayDrawer ? (
-        <div
-          className={css(styles.menuItem)}
-          onClick={handleDisplayDrawer}
-        >
+        <div className={css(styles.menuItem)} onClick={handleDisplayDrawer}>
           <p>Your notifications</p>
         </div>
       ) : (
@@ -53,6 +55,18 @@ const Notifications = ({
           {unreadNotifications.length !== 0 ? (
             <p>Here is the list of notifications</p>
           ) : null}
+          <button
+            onClick={() => setNotificationFilter("URGENT")}
+            className={css(styles.filterButton)}
+          >
+            ‼️
+          </button>
+          <button
+            onClick={() => setNotificationFilter("DEFAULT")}
+            className={css(styles.filterButton)}
+          >
+            💠
+          </button>
           <ul>
             {unreadNotifications.length === 0 ? (
               <NotificationItem
@@ -107,7 +121,6 @@ const styles = StyleSheet.create({
       border: "none",
     },
   },
-
   menuItem: {
     position: "relative",
     zIndex: 100,
@@ -119,6 +132,13 @@ const styles = StyleSheet.create({
       animationIterationCount: "3",
     },
   },
+  filterButton: {
+    margin: "0 5px",
+    cursor: "pointer",
+    backgroundColor: "transparent",
+    border: "none",
+    fontSize: "1.5em",
+  },
 });
 
 Notifications.propTypes = {
@@ -128,6 +148,7 @@ Notifications.propTypes = {
   handleHideDrawer: PropTypes.func,
   markAsRead: PropTypes.func.isRequired, // Ensure markAsRead is required
   fetchNotifications: PropTypes.func.isRequired,
+  setNotificationFilter: PropTypes.func.isRequired, // Ensure setNotificationFilter is required
 };
 
 Notifications.defaultProps = {
@@ -139,13 +160,14 @@ Notifications.defaultProps = {
 
 // Map state to props using the selector
 const mapStateToProps = (state) => ({
-  unreadNotifications: getUnreadNotifications(state), // Use selector to get unreadNotifications
+  unreadNotifications: getUnreadNotificationsByType(state), // Use selector to get unreadNotifications
 });
 
 // Map dispatch to props
 const mapDispatchToProps = {
   fetchNotifications,
   markAsRead,
+  setNotificationFilter,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Notifications);
